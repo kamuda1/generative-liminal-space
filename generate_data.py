@@ -1,10 +1,14 @@
+# todo: rename this file generate_masks?
+
 import argparse
+from skimage.io import imread
+from skimage.segmentation import slic
 import numpy as np
 import random
+from glob import glob
 from PIL import Image
 
 action_list = [[0, 1], [0, -1], [1, 0], [-1, 0]]
-
 
 def random_walk(canvas, ini_x, ini_y, length):
     x = ini_x
@@ -22,24 +26,46 @@ def random_walk(canvas, ini_x, ini_y, length):
     return canvas
 
 
+def segment_image(image_path: str, n_segments: int):
+    """
+    Segments an image.
+    :param image_path:
+        Path to the image
+    :param n_segments:
+        number of segments per image
+    :return:
+    """
+    test_image = imread(image_path)
+    segments = slic(test_image, n_segments=n_segments, compactness=10)
+    return segments
+
+
 if __name__ == '__main__':
     import os
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--image_size', type=int, default=512)
-    parser.add_argument('--N', type=int, default=10000)
+    parser.add_argument('--N', type=int, default=10)
+    parser.add_argument('--image_dir', type=str, default='train_data')
     parser.add_argument('--save_dir', type=str, default='masks')
     args = parser.parse_args()
 
     if not os.path.exists(args.save_dir):
         os.makedirs(args.save_dir)
 
-    for i in range(args.N):
-        canvas = np.ones((args.image_size, args.image_size)).astype("i")
-        ini_x = random.randint(0, args.image_size - 1)
-        ini_y = random.randint(0, args.image_size - 1)
-        mask = random_walk(canvas, ini_x, ini_y, args.image_size ** 2)
-        print("save:", i, np.sum(mask))
+    for filename in glob(args.image_dir):
+        masks = segment_image(filename, args.N)
 
-        img = Image.fromarray(mask * 255).convert('1')
-        img.save('{:s}/{:06d}.jpg'.format(args.save_dir, i))
+        for mask_index, mask in enumerate(masks):
+            img = Image.fromarray(mask * 255).convert('1')
+            img.save('{:s}/{:06d}.jpg'.format(args.save_dir, mask_index))
+
+    # for i in range(args.N):
+    #     canvas = np.ones((args.image_size, args.image_size)).astype("i")
+    #     ini_x = random.randint(0, args.image_size - 1)
+    #     ini_y = random.randint(0, args.image_size - 1)
+    #     mask = random_walk(canvas, ini_x, ini_y, args.image_size ** 2)
+    #     print("save:", i, np.sum(mask))
+    #
+    #     img = Image.fromarray(mask * 255).convert('1')
+    #     img.save('{:s}/{:06d}.jpg'.format(args.save_dir, i))
