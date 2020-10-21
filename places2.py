@@ -27,8 +27,9 @@ class Places2(torch.utils.data.Dataset):
         gt_img = self.img_transform(gt_img.convert('RGB'))
 
         file_basename = os.path.basename(filename).split('.')[0]
-        possible_masks = glob(os.path.join(self.mask_paths, file_basename, '*'))
-        mask = random.choice(possible_masks)
+        possible_masks = glob(os.path.join('/content/masks/',
+                                           file_basename + '*'))
+        mask = Image.open(random.choice(possible_masks))
         # mask = Image.open(self.mask_paths[random.randint(0, self.N_mask - 1)])
         mask = self.mask_transform(mask.convert('RGB'))
         return gt_img * mask, mask, gt_img

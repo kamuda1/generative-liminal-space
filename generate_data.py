@@ -38,7 +38,7 @@ def segment_image(image_path: str, n_segments: int) -> np.ndarray:
         The segments of the image
     """
     test_image = imread(image_path)
-    segments = slic(test_image, n_segments=n_segments, compactness=10)
+    segments = slic(test_image, n_segments=n_segments, compactness=100)
     return segments
 
 
@@ -54,11 +54,12 @@ if __name__ == '__main__':
     if not os.path.exists(args.save_dir):
         os.makedirs(args.save_dir)
 
-    for filename in glob(os.path.join(args.image_dir, '*')):
+    # for filename in glob('/content/generative-liminal-space/train_data/*'):
+    for filename in glob('train_data/*'):
         masks = segment_image(filename, args.N)
         file_basename = os.path.basename(filename).split('.')[0]
         for mask_index in np.unique(masks):
-            mask = masks == mask_index
+            mask = (masks != mask_index).astype(float)
             img = Image.fromarray(mask * 255).convert('1')
             img.save('{:s}/{:s}_{:06d}.jpg'.format(args.save_dir, file_basename, mask_index))
 
