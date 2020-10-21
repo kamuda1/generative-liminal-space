@@ -54,8 +54,8 @@ if __name__ == '__main__':
     if not os.path.exists(args.save_dir):
         os.makedirs(args.save_dir)
 
-    # for filename in glob('/content/generative-liminal-space/train_data/*'):
-    for filename in glob('train_data/*'):
+    for filename in glob('/content/generative-liminal-space/train_data/*'):
+    # for filename in glob('train_data/*'):
         masks = segment_image(filename, args.N)
         file_basename = os.path.basename(filename).split('.')[0]
         for mask_index in np.unique(masks):
