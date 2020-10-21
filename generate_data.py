@@ -7,6 +7,7 @@ import numpy as np
 import random
 from glob import glob
 from PIL import Image
+import os
 
 action_list = [[0, 1], [0, -1], [1, 0], [-1, 0]]
 
@@ -26,14 +27,15 @@ def random_walk(canvas, ini_x, ini_y, length):
     return canvas
 
 
-def segment_image(image_path: str, n_segments: int):
+def segment_image(image_path: str, n_segments: int) -> np.ndarray:
     """
     Segments an image.
     :param image_path:
         Path to the image
     :param n_segments:
         number of segments per image
-    :return:
+    :return segments:
+        The segments of the image
     """
     test_image = imread(image_path)
     segments = slic(test_image, n_segments=n_segments, compactness=10)
@@ -41,7 +43,6 @@ def segment_image(image_path: str, n_segments: int):
 
 
 if __name__ == '__main__':
-    import os
 
     parser = argparse.ArgumentParser()
     parser.add_argument('--image_size', type=int, default=512)
@@ -53,12 +54,13 @@ if __name__ == '__main__':
     if not os.path.exists(args.save_dir):
         os.makedirs(args.save_dir)
 
-    for filename in glob(args.image_dir):
+    for filename in glob(os.path.join(args.image_dir, '*')):
         masks = segment_image(filename, args.N)
-
-        for mask_index, mask in enumerate(masks):
+        file_basename = os.path.basename(filename).split('.')[0]
+        for mask_index in np.unique(masks):
+            mask = masks == mask_index
             img = Image.fromarray(mask * 255).convert('1')
-            img.save('{:s}/{:06d}.jpg'.format(args.save_dir, mask_index))
+            img.save('{:s}/{:s}_{:06d}.jpg'.format(args.save_dir, file_basename, mask_index))
 
     # for i in range(args.N):
     #     canvas = np.ones((args.image_size, args.image_size)).astype("i")

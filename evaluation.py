@@ -4,9 +4,8 @@ from torchvision.utils import save_image
 
 from util.image import unnormalize
 
-
-def evaluate(model, dataset, device, filename):
-    image, mask, gt = zip(*[dataset[i] for i in range(8)])
+def evaluate(model, dataset, device, filename, total_images=5):
+    image, mask, gt = zip(*[dataset[i] for i in range(total_images)])
     image = torch.stack(image)
     mask = torch.stack(mask)
     gt = torch.stack(gt)
