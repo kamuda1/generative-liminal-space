@@ -1,8 +1,11 @@
 import os
 import random
 import torch
+import numpy as np
 from PIL import Image
 from glob import glob
+
+from generate_data import segment_image
 
 
 class Places2(torch.utils.data.Dataset):
@@ -29,8 +32,15 @@ class Places2(torch.utils.data.Dataset):
         file_basename = os.path.basename(filename).split('.')[0]
         possible_masks = glob(os.path.join('/content/masks/',
                                            file_basename + '*'))
-        mask = Image.open(random.choice(possible_masks))
-        # mask = Image.open(self.mask_paths[random.randint(0, self.N_mask - 1)])
+        if len(possible_masks) == 0:
+            masks = segment_image(filename, 5)
+            for mask_index in np.unique(masks):
+                tmp_mask = (masks != mask_index).astype(float)
+                tmp_mask = Image.fromarray(tmp_mask * 255).convert('1')
+                possible_masks.append(tmp_mask)
+            mask = random.choice(possible_masks)
+        else:
+          mask = Image.open(random.choice(possible_masks))
         mask = self.mask_transform(mask.convert('RGB'))
         return gt_img * mask, mask, gt_img
 
